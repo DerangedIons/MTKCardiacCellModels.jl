@@ -1,7 +1,11 @@
 using RushLarsenSolvers
+using MTKCardiacCellModels
+using MTKCardiacCellModels: AlphaBetaGate, IonChannelConductance, IonCurrent, LeakCurrent,
+    SlowInwardCurrent, TimeIndependentK, TimeActivatedOutward, CalciumDynamics, StimulationSystem
 using ModelingToolkit
-using MTKCardiacCellModels: AlphaBetaGate, IonChannelConductance, IonCurrent, LeakCurrent, SlowInwardCurrent, TimeIndependantK, TimeActivatedOutward, CalciumDynamics
+using Plots
 
+import ModelingToolkit: t_nounits as t, D_nounits as D
 
 @variables V(t) Ca_i(t)
 V = GlobalScope(V)
