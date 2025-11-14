@@ -49,8 +49,45 @@ end
     System(eqs, t, [g], [g_max], systems=[gates...], name=name)
 end
 
+"""
+NernstPotential(Xₑ, Xᵢ, zₓ, T)
 
-@component function IonCurrent(; name, Vm, gm, Ex)
+    Xₑ = extracellular concentration of X
+    Xᵢ = extracellular concentration of X
+    zₓ = charge of X
+    T  = absolute temperature
+"""
+@component function NernstPotential(; name, Xₑ, Xᵢ, zₓ, T)
+    @variables Eₓ(t)
+    # Faraday and Gas constants
+    @parameters F = 96.5 , R = 8.315
+    eqs = [
+        Eₓ ~ (zX * F) / (zₓ * R) * log(Xₑ / Xᵢ)
+    ]
+
+    System(eqs, t, [Eₓ], [F, R], systems=[gm], name=name)
+end
+
+"""
+GoldmannHodgkinKatzPotential(Xₑs, Xᵢs, Pₓs, T)
+
+    Xₑs = extracellular concentrations of X
+    Xᵢs = extracellular concentrations of X
+    Pₓs = permeabilities of X
+    T   = absolute temperature
+"""
+@component function GoldmannHodgkinKatzPotential(; name, Xₑs, Xᵢs, Pₓs, T)
+    @variables Eₓ(t)
+    # Faraday and Gas constants
+    @parameters F = 96.5 , R = 8.315
+    eqs = [
+        Eₓ ~ (zX * F) / R * log(sum(Xₑs .* Pₓs) / sum(Xᵢs .* Pₓs))
+    ]
+
+    System(eqs, t, [Eₓ], [F, R], systems=[gm], name=name)
+end
+
+@component function OhmicCurrent(; name, Vm, gm, Ex)
     @variables Im(t)
     @parameters Ex = Ex
     eqs = [
@@ -58,6 +95,25 @@ end
     ]
 
     System(eqs, t, [Vm, Im], [Ex], systems=[gm], name=name)
+end
+
+"""
+GoldmannHodgkinKatzCurrent(Xₑ, Xᵢ, Pₓ, zₓ, T)
+
+    Xₑs = extracellular concentrations of X
+    Xᵢs = extracellular concentrations of X
+    Pₓs = permeabilities of X
+    T   = absolute temperature
+"""
+@component function GoldmannHodgkinKatzCurrent(; name, φₘ, Xₑ, Xᵢ, Pₓ, zₓ, T)
+    @variables I(t)
+    # Faraday and Gas constants
+    @parameters F = 96.5 , R = 8.315
+    eqs = [
+        I ~ Pₓ * (zₓ^2 * F^2) / (R * T) * (Xₓ - Xₑ * exp(-zₓ) * F * φₘ / (R * T)) / (1 - exp(-zₓ) * F * φₘ / (R * T))
+    ]
+
+    System(eqs, t, [I], [F, R], systems=[gm], name=name)
 end
 
 @component function LeakCurrent(; name, Vm, gL, EL)
@@ -84,6 +140,7 @@ end
     System(eqs, t, [Vm], [Cm], systems=[currents...], name=name)
 end
 
+# FIXME
 @component function SlowInwardCurrent(; name, Vm, Ca_i, gm)
     @variables Im(t) E_s(t)
 
@@ -95,6 +152,7 @@ end
     System(eqs, t, [Vm, Ca_i, Im, E_s], [], systems=[gm], name=name)
 end
 
+# FIXME
 @component function TimeIndependentK(; name, Vm)
     @variables Im(t)
 
@@ -107,6 +165,7 @@ end
     System(eqs, t, [Vm, Im], [], name=name)
 end
 
+# FIXME
 @component function TimeActivatedOutward(; name, Vm, gate, g_x1)
     @variables Im(t)
     @parameters g_x1 = g_x1
@@ -118,6 +177,7 @@ end
     System(eqs, t, [Vm, Im], [g_x1], systems=[gate], name=name)
 end
 
+# FIXME
 @component function CalciumDynamics(; name, Ca_i, I_s)
     eqs = [
         D(Ca_i) ~ -10.0^-7 * I_s + 0.07 * (10.0^-7 - Ca_i)
