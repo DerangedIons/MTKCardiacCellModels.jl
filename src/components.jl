@@ -167,7 +167,7 @@ end
     end
     @equations begin
         # This equation comes from Adrian (1969) Eqn 15.1.
-        ik2 ~ 4.0 * (exp(0.04 * (φₘ + 85.0)) - 1.0) / exp(0.08 * (φₘ + 53.0)) + exp(0.04 * (φₘ + 53.0))
+        ik2 ~ 4.0 * (exp(0.04 * (φₘ + 85.0)) - 1.0) / (exp(0.08 * (φₘ + 53.0)) + exp(0.04 * (φₘ + 53.0)))
         # This is attributed to McAllister, which in turn also attributes this to Adrian (1969), but I cannot find the formula in the paper.
         Iₘ ~ 0.35 * (ik2 + 0.2 * (φₘ + 23.0) / (1.0 - exp(-0.04 * (φₘ + 23.0))))
     end
@@ -175,7 +175,7 @@ end
 
 # TODO in their paper they do not state if they got this function from somewhere else. Double check.
 function BeelerReuterRate(φₘ, C₁, C₂, C₃, C₄, C₅, C₆, C₇)
-    (C₁ * exp(C₂ * (φₘ - C₃)) + C₄ * (φₘ - C₅)) / (exp(C₆ * (φₘ - C₃)) + C₇)
+    (C₁ * exp(C₂ * (φₘ + C₃)) + C₄ * (φₘ - C₅)) / (exp(C₆ * (φₘ + C₃)) + C₇)
 end
 
 @mtkmodel BeelerReuterIx1 begin

@@ -1,9 +1,9 @@
-# using RushLarsenSolvers
+using RushLarsenSolvers
 using MTKCardiacCellModels
 using MTKCardiacCellModels: AlphaBetaGate, NernstPotential, OhmicCurrent
 using MTKCardiacCellModels: BeelerReuterIK1, BeelerReuterIx1, BeelerReuterICa, BeelerReuterINa, BeelerReuterCalciumDynamics
 using ModelingToolkit
-# using Plots
+using Plots
 
 import ModelingToolkit: t_nounits as t, D_nounits as D
 
@@ -94,26 +94,15 @@ u0 = [
     -84.0       # V(t) - Resting potential [mV]
 ]
 
-prob = ODEProblem(beeler_reuter_system, u0, (0.0, 400.0))
+# sol = solve(prob, Tsit5())
+# plot(sol, idxs=[8])
 
-using OrdinaryDiffEqTsit5, Plots
-sol = solve(prob, Tsit5())
-plot(sol, idxs=[8])
-# rlf = RushLarsenFunction(sys)
+rlf = RushLarsenFunction(beeler_reuter_system)
 
+# Time span for simulation
+tspan = (0.0, 500.0)  # 2000 ms
 
-# p = [1.0,
-#     50.0,
-#     4.0,
-#     50.0,
-#     0.003,
-#     0.09,
-#     0.8
-# ]
+p = ODEProblem(beeler_reuter_system, u0, tspan).p
+prob = ODEProblem(rlf, u0, tspan, p)
 
-# # Time span for simulation
-# tspan = (0.0, 500.0)  # 2000 ms
-
-# prob = ODEProblem(rlf, u0, tspan, p)
-
-# sol = solve(prob, RushLarsen(), dt=0.01)
+sol = solve(prob, RushLarsen(), dt=0.01)
