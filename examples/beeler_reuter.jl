@@ -12,9 +12,10 @@ import ModelingToolkit: t_nounits as t, D_nounits as D
         I_stim
     end
     @parameters begin
-        gNaL = 0.01
+        gNaL = 0.003
         ENa = 50.0
         Cₘ = 1.0
+        Caₒ   = 0.0021021513474235995, [description = "Extracellular calcium concentration"]
     end
     @variables begin
         φₘ(t)
@@ -35,7 +36,7 @@ import ModelingToolkit: t_nounits as t, D_nounits as D
     @equations begin
         # Reversal Potential
         ECa.Xᵢ ~ Caᵢ
-        ECa.Xₑ ~ Caᵢ
+        ECa.Xₑ ~ Caₒ
         # Membrane equation
         D(φₘ) ~ -1 / Cₘ * (cNa_leak.Iₘ + cNa.Iₘ + cK1.Iₘ + cx1.Iₘ + cCa.Iₘ - I_stim(t))
         # Leak current

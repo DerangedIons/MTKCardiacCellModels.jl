@@ -163,7 +163,6 @@ end
     @variables begin
         Iₘ(t)
         ik2(t)
-        c1(t)
         φₘ(t)
     end
     @equations begin
@@ -224,7 +223,7 @@ end
     @equations begin
         i.φₘ ~ φₘ
         i.E ~ ECa
-        Iₘ ~ g_max * f.y * d.y * i.Iₘ
+        Iₘ ~ f.y * d.y * i.Iₘ
     end
 end
 
@@ -256,13 +255,12 @@ end
     @equations begin
         i.φₘ ~ φₘ
         i.E ~ ENa
-        Iₘ ~ g_max * m.y^3 * h.y * j.y * i.Iₘ
+        Iₘ ~ m.y^3 * h.y * j.y * i.Iₘ
     end
 end
 
 @mtkmodel BeelerReuterCalciumDynamics begin
     @parameters begin
-        Caₒ   = 0.0021, [description = "Extracellular calcium concentration"]
         T     = 310.0, [description = "Absolute temperature"]
     end
     @variables begin
