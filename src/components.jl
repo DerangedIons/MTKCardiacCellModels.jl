@@ -3,6 +3,8 @@ struct GatingVariable <: ModelingToolkit.Symbolics.AbstractVariableMetadata end
 ModelingToolkit.Symbolics.option_to_metadata_type(::Val{:gating}) = GatingVariable
 is_gating_variable(var) = ModelingToolkit.Symbolics.hasmetadata(var, GatingVariable) ? ModelingToolkit.Symbolics.getmetadata(var, GatingVariable) : false
 
+# Cardiac physiology convention (Beeler-Reuter 1977): concentrations in mM (mmol/L).
+# F in C/mmol and R in J/(mol·K) so that RT/zF yields mV directly.
 const FARADAY = 96.5    # Faraday constant [C/mmol]
 const GAS_CONST = 8.315 # Gas constant [J/(mol·K)]
 
@@ -100,7 +102,7 @@ end
         Eₓ ~ (zₓ * FARADAY) / GAS_CONST * log(sum(Xₑs .* Pₓs) / sum(Xᵢs .* Pₓs))
     ]
 
-    System(eqs, t, [Eₓ, collect(Xₑs)..., collect(Xᵢs)..., collect(Pₓs)...], [zₓ, T], name=name)
+    System(eqs, t, [Eₓ; Xₑs; Xᵢs; Pₓs], [zₓ, T], name=name)
 end
 
 @component function OhmicCurrent(; name, g)
@@ -247,6 +249,7 @@ end
     System(eqs, t, [φₘ, Iₘ], [g_max, ENa], systems=[m, h, j], name=name)
 end
 
+# iCa here is i_s (slow inward current) in BR77 Table 5: i_s = g_s * d * f * (V - E_Ca).
 @component function BeelerReuterCalciumDynamics(; name)
     @variables begin
         Caᵢ(t)
