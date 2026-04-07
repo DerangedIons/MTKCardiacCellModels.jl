@@ -16,9 +16,9 @@ dy/dt = α(1 - y) - βy.
 
 Reference: Hodgkin & Huxley (1952), J Physiol 117:500-544.
 """
-@component function AlphaBetaGate(; name, α_expr, β_expr)
+@component function AlphaBetaGate(; name, α_expr, β_expr, y0)
     @variables begin
-        y(t), [gating = true, bounds = (0.0, 1.0)]
+        y(t) = y0, [gating = true, bounds = (0.0, 1.0)]
         α(t)
         β(t)
     end
@@ -228,6 +228,7 @@ Reference: Beeler & Reuter (1977), Table 3.
         name=:gate,
         α_expr=BeelerReuterRate(φₘ_parent, 0.0005, 0.083, 50.0, 0, 0, 0.057, 1.0),
         β_expr=BeelerReuterRate(φₘ_parent, 0.0013, -0.06, 20.0, 0, 0, -0.04, 1.0),
+        y0=0.0001,
     )
 
     eqs = [
@@ -260,11 +261,13 @@ Reference: Beeler & Reuter (1977), Table 5.
         name=:d,
         α_expr=BeelerReuterRate(φₘ_parent, 0.095, -0.01, -5.0, 0, 0, -0.072, 1.0),
         β_expr=BeelerReuterRate(φₘ_parent, 0.07, -0.017, 44.0, 0, 0, 0.05, 1.0),
+        y0=0.003,
     )
     f = AlphaBetaGate(
         name=:f,
         α_expr=BeelerReuterRate(φₘ_parent, 0.012, -0.008, 28.0, 0, 0, 0.15, 1.0),
         β_expr=BeelerReuterRate(φₘ_parent, 0.0065, -0.02, 30.0, 0, 0, -0.2, 1.0),
+        y0=0.994,
     )
 
     eqs = [
@@ -297,16 +300,19 @@ Reference: Beeler & Reuter (1977), Table 4.
         name=:m,
         α_expr=(φₘ_parent + 47.0) / (1.0 - exp(-0.1 * (φₘ_parent + 47.0))),
         β_expr=40.0 * exp(-0.056 * (φₘ_parent + 72.0)),
+        y0=0.011,
     )
     h = AlphaBetaGate(
         name=:h,
         α_expr=0.126 * exp(-0.25 * (φₘ_parent + 77.0)),
         β_expr=1.7 / (1.0 + exp(-0.082 * (φₘ_parent + 22.5))),
+        y0=0.988,
     )
     j = AlphaBetaGate(
         name=:j,
         α_expr=0.055 * exp(-0.25 * (φₘ_parent + 78)) / (1 + exp(-0.2 * (φₘ_parent + 78))),
         β_expr=0.3 / (1 + exp(-0.1 * (φₘ_parent + 32.0))),
+        y0=0.975,
     )
 
     eqs = [
@@ -325,9 +331,9 @@ The `iCa` input is the slow inward current i_s from BR77 Table 5
 
 Reference: Beeler & Reuter (1977), Table 5, [Ca]ᵢ equation.
 """
-@component function BeelerReuterCalciumDynamics(; name)
+@component function BeelerReuterCalciumDynamics(; name, Caᵢ0=1e-7)
     @variables begin
-        Caᵢ(t)
+        Caᵢ(t) = Caᵢ0
         iCa(t)
     end
 
@@ -346,7 +352,7 @@ Composes INa, IK1, Ix1, ICa (≡ i_s), calcium dynamics, and a sodium leak curre
 
 Reference: Beeler & Reuter (1977), J Physiol 268:177-210.
 """
-@component function BeelerReuterModel(; name, I_stim, gNaL=0.003, ENa=50.0, Cₘ=1.0, Caₒ=0.0021021513474235995)
+@component function BeelerReuterModel(; name, I_stim, gNaL=0.003, ENa=50.0, Cₘ=1.0, Caₒ=0.0021021513474235995, φₘ0=-84.0)
     @parameters begin
         gNaL = gNaL
         ENa = ENa
@@ -354,7 +360,7 @@ Reference: Beeler & Reuter (1977), J Physiol 268:177-210.
         Caₒ = Caₒ
     end
     @variables begin
-        φₘ(t)
+        φₘ(t) = φₘ0
         Caᵢ(t)
     end
 

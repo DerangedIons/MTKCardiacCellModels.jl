@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MTKCardiacCellModels is a Julia package providing ModelingToolkit (MTK) v11 components for cardiac cell electrophysiology. It implements reusable building blocks (gates, currents, reversal potentials) and a complete Beeler-Reuter (1977) action potential model.
+MTKCardiacCellModels is a Julia package providing ModelingToolkit (MTK) v11 components for lumped cardiac cell models. It implements reusable building blocks (gates, currents, reversal potentials) that can be composed into whole-cell action potential models.
 
 ## Commands
 

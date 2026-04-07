@@ -17,17 +17,7 @@ import ModelingToolkit: t_nounits as t, D_nounits as D
         @named model = BeelerReuterModel(I_stim=pulse)
         sys = mtkcompile(model)
 
-        u0 = unknowns(sys) .=> [
-            1e-7,   # Caᵢ
-            0.975,  # j gate
-            0.988,  # h gate
-            0.011,  # m gate
-            0.994,  # f gate
-            0.003,  # d gate
-            0.0001, # x1 gate
-            -84.0,  # φₘ
-        ]
-        prob = ODEProblem(sys, u0, (0.0, 500.0))
+        prob = ODEProblem(sys, [], (0.0, 500.0))
         sol = solve(prob, FBDF(); abstol=1e-8, reltol=1e-6)
 
         @test SciMLBase.successful_retcode(sol)
