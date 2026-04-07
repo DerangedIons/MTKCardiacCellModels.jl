@@ -10,6 +10,14 @@ const GAS_CONST = 8.315 # Gas constant [J/(mol·K)]
 
 # ─── Gates ────────────────────────────────────────────────────────────────────
 
+"""
+    AlphaBetaGate(; name, α_expr, β_expr)
+
+Hodgkin-Huxley gating variable with voltage-dependent forward (α) and backward (β) rates.
+dy/dt = α(1 - y) - βy.
+
+Reference: Hodgkin & Huxley (1952), J Physiol 117:500-544.
+"""
 @component function AlphaBetaGate(; name, α_expr, β_expr)
     @variables begin
         y(t), [gating = true, bounds = (0.0, 1.0)]
@@ -26,8 +34,13 @@ const GAS_CONST = 8.315 # Gas constant [J/(mol·K)]
     System(eqs, t, [y, α, β], [], name=name)
 end
 
+"""
+    TauGate(; name, y∞, τ)
+
+Gating variable in time-constant form: dy/dt = (y∞ - y) / τ.
+Equivalent to AlphaBetaGate with α = y∞/τ, β = (1-y∞)/τ.
+"""
 # TODO compatibility with Rush-Larsen
-#  we have α = 1/τ and β =
 @component function TauGate(; name, y∞, τ)
     @variables y(t), [bounds = (0.0, 1.0)]
 
@@ -43,7 +56,11 @@ end
     System(eqs, t, [y], [y∞, τ], name=name)
 end
 
-# Limit case when τ -> 0
+"""
+    RapidTauGate(; name, y∞_expr)
+
+Algebraic (instantaneous) gating variable for the limit τ → 0: y = y∞.
+"""
 @component function RapidTauGate(; name, y∞_expr)
     @variables begin
         y(t), [bounds = (0.0, 1.0)]
@@ -60,6 +77,11 @@ end
 
 # ─── Generic components ───────────────────────────────────────────────────────
 
+"""
+    NernstPotential(; name, zₓ, T=310.0)
+
+Nernst equilibrium potential: Eₓ = (RT / zF) ln(Xₑ / Xᵢ).
+"""
 @component function NernstPotential(; name, zₓ, T=310.0)
     @parameters begin
         zₓ = zₓ
@@ -81,10 +103,9 @@ end
 @doc """
     GoldmannHodgkinKatzPotential(; name, N, zₓ, T=310.0)
 
-    Xₑs = extracellular concentrations of X
-    Xᵢs = intracellular concentrations of X
-    Pₓs = permeabilities of X
-    T   = absolute temperature
+Goldman-Hodgkin-Katz voltage equation for N ion species with permeabilities Pₓs.
+
+Reference: Goldman (1943), J Gen Physiol 27:37-60.
 """
 @component function GoldmannHodgkinKatzPotential(; name, N, zₓ, T=310.0)
     @parameters begin
@@ -105,6 +126,11 @@ end
     System(eqs, t, [Eₓ; Xₑs; Xᵢs; Pₓs], [zₓ, T], name=name)
 end
 
+"""
+    OhmicCurrent(; name, g)
+
+Ohmic membrane current: Iₘ = g(φₘ - E).
+"""
 @component function OhmicCurrent(; name, g)
     @parameters g = g
     @variables begin
@@ -120,6 +146,13 @@ end
     System(eqs, t, [Iₘ, φₘ, E], [g], name=name)
 end
 
+"""
+    GoldmannHodgkinKatzCurrent(; name, zₓ, Pₓ, T=310.0)
+
+Goldman-Hodgkin-Katz current equation for a single ion species.
+
+Reference: Goldman (1943), J Gen Physiol 27:37-60; Hodgkin & Katz (1949), J Physiol 108:37-77.
+"""
 @component function GoldmannHodgkinKatzCurrent(; name, zₓ, Pₓ, T=310.0)
     @parameters begin
         T = T
@@ -142,11 +175,26 @@ end
 
 # ─── Beeler-Reuter model ─────────────────────────────────────────────────────
 
-# TODO in their paper they do not state if they got this function from somewhere else. Double check.
+"""
+    BeelerReuterRate(φₘ, C₁, C₂, C₃, C₄, C₅, C₆, C₇)
+
+Generic voltage-dependent rate function for gating kinetics:
+r(V) = (C₁ exp(C₂(V + C₃)) + C₄(V - C₅)) / (exp(C₆(V + C₃)) + C₇).
+
+Reference: Beeler & Reuter (1977), J Physiol 268:177-210, Table 1.
+"""
 function BeelerReuterRate(φₘ, C₁, C₂, C₃, C₄, C₅, C₆, C₇)
     (C₁ * exp(C₂ * (φₘ + C₃)) + C₄ * (φₘ - C₅)) / (exp(C₆ * (φₘ + C₃)) + C₇)
 end
 
+"""
+    BeelerReuterIK1(; name)
+
+Time-independent potassium current (IK1). Combines the IK2 component from
+Adrian (1969) Eq. 15.1 with a background term attributed to McAllister et al. (1975).
+
+Reference: Beeler & Reuter (1977), Table 2; Adrian et al. (1969), J Physiol 204:653-693.
+"""
 @component function BeelerReuterIK1(; name)
     @variables begin
         Iₘ(t)
@@ -155,15 +203,20 @@ end
     end
 
     eqs = [
-        # This equation comes from Adrian (1969) Eqn 15.1.
         ik2 ~ 4.0 * (exp(0.04 * (φₘ + 85.0)) - 1.0) / (exp(0.08 * (φₘ + 53.0)) + exp(0.04 * (φₘ + 53.0)))
-        # This is attributed to McAllister, which in turn also attributes this to Adrian (1969), but I cannot find the formula in the paper.
         Iₘ ~ 0.35 * (ik2 + 0.2 * (φₘ + 23.0) / (1.0 - exp(-0.04 * (φₘ + 23.0))))
     ]
 
     System(eqs, t, [Iₘ, ik2, φₘ], [], name=name)
 end
 
+"""
+    BeelerReuterIx1(; name, g_x1=0.8)
+
+Time-activated outward (plateau) current with one AlphaBetaGate.
+
+Reference: Beeler & Reuter (1977), Table 3.
+"""
 @component function BeelerReuterIx1(; name, g_x1=0.8)
     @variables begin
         Iₘ(t)
@@ -186,6 +239,15 @@ end
     System(eqs, t, [Iₘ, φₘ], [g_x1], systems=[gate], name=name)
 end
 
+"""
+    BeelerReuterICa(; name, g_max=0.09)
+
+Slow inward (calcium) current: Iₘ = gₛ · d · f · (V - E_Ca).
+This is i_s in BR77 Table 5 (g_s = 0.09). Named `ICa` following the modern convention
+identifying i_s as an L-type calcium current.
+
+Reference: Beeler & Reuter (1977), Table 5.
+"""
 @component function BeelerReuterICa(; name, g_max=0.09)
     @parameters g_max = g_max
     @variables begin
@@ -214,6 +276,13 @@ end
     System(eqs, t, [φₘ, ECa, Iₘ], [g_max], systems=[d, f], name=name)
 end
 
+"""
+    BeelerReuterINa(; name, g_max=4.0, ENa=50.0)
+
+Fast sodium current with three gates (m³hj): Iₘ = gNa · m³ · h · j · (V - ENa).
+
+Reference: Beeler & Reuter (1977), Table 4.
+"""
 @component function BeelerReuterINa(; name, g_max=4.0, ENa=50.0)
     @parameters begin
         g_max = g_max
@@ -249,7 +318,15 @@ end
     System(eqs, t, [φₘ, Iₘ], [g_max, ENa], systems=[m, h, j], name=name)
 end
 
-# iCa here is i_s (slow inward current) in BR77 Table 5: i_s = g_s * d * f * (V - E_Ca).
+"""
+    BeelerReuterCalciumDynamics(; name)
+
+Intracellular calcium concentration dynamics.
+The `iCa` input is the slow inward current i_s from BR77 Table 5
+(computed by [`BeelerReuterICa`](@ref)).
+
+Reference: Beeler & Reuter (1977), Table 5, [Ca]ᵢ equation.
+"""
 @component function BeelerReuterCalciumDynamics(; name)
     @variables begin
         Caᵢ(t)
@@ -263,6 +340,14 @@ end
     System(eqs, t, [Caᵢ, iCa], [], name=name)
 end
 
+"""
+    BeelerReuterModel(; name, I_stim, gNaL=0.003, ENa=50.0, Cₘ=1.0, Caₒ=0.002102)
+
+Complete Beeler-Reuter (1977) ventricular action potential model.
+Composes INa, IK1, Ix1, ICa (≡ i_s), calcium dynamics, and a sodium leak current.
+
+Reference: Beeler & Reuter (1977), J Physiol 268:177-210.
+"""
 @component function BeelerReuterModel(; name, I_stim, gNaL=0.003, ENa=50.0, Cₘ=1.0, Caₒ=0.0021021513474235995)
     @parameters begin
         gNaL = gNaL
