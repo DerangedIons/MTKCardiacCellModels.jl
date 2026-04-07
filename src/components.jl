@@ -3,10 +3,8 @@ struct GatingVariable <: ModelingToolkit.Symbolics.AbstractVariableMetadata end
 ModelingToolkit.Symbolics.option_to_metadata_type(::Val{:gating}) = GatingVariable
 is_gating_variable(var) = ModelingToolkit.Symbolics.hasmetadata(var, GatingVariable) ? ModelingToolkit.Symbolics.getmetadata(var, GatingVariable) : false
 
-# Cardiac physiology convention (Beeler-Reuter 1977): concentrations in mM (mmol/L).
-# F in C/mmol and R in J/(mol·K) so that RT/zF yields mV directly.
-const FARADAY = 96.5    # Faraday constant [C/mmol]
-const GAS_CONST = 8.315 # Gas constant [J/(mol·K)]
+const FARADAY = 96_485.0  # Faraday constant [C/mol]
+const GAS_CONST = 8.314    # Gas constant [J/(mol·K)]
 
 # ─── Gates ────────────────────────────────────────────────────────────────────
 
@@ -94,7 +92,7 @@ Nernst equilibrium potential: Eₓ = (RT / zF) ln(Xₑ / Xᵢ).
     end
 
     eqs = [
-        Eₓ ~ (GAS_CONST * T) / (zₓ * FARADAY) * log(Xₑ / Xᵢ)
+        Eₓ ~ 1000 * (GAS_CONST * T) / (zₓ * FARADAY) * log(Xₑ / Xᵢ)
     ]
 
     System(eqs, t, [Eₓ, Xₑ, Xᵢ], [zₓ, T], name=name)
