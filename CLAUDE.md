@@ -33,6 +33,7 @@ All components live in `src/components.jl` and follow a three-layer hierarchy:
 - **`GatingVariable` metadata**: Custom metadata type registered via `option_to_metadata_type(::Val{:gating})`. Gating variables are declared with `[gating = true, bounds = (0.0, 1.0)]`.
 - **`t_nounits` / `D_nounits`**: The package uses unitless time and derivative operators imported from ModelingToolkit.
 - **`BeelerReuterRate`**: A plain function (not a component) implementing the generic voltage-dependent rate formula used by BR77 alpha/beta expressions.
+- **Parameter ↔ Variable promotion**: MTK v11's `@component` + `System()` has no built-in toggle to promote a parameter to a variable or vice versa. Instead, declare the quantity as `@variables` in both components. To fix it as a constant, connect it via an algebraic equation (e.g. `x ~ fixed_value`); to leave it free, give it a differential equation or omit the algebraic constraint. MTK's compiler eliminates constant aliases at no runtime cost (see `SciML/ModelingToolkit.jl#4402`).
 
 ## Dependencies
 
