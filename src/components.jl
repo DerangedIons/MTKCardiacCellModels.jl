@@ -188,10 +188,10 @@ end
 """
     BeelerReuterIK1(; name)
 
-Time-independent potassium current (IK1). Combines the IK2 component from
-Adrian (1969) Eq. 15.1 with a background term attributed to McAllister et al. (1975).
+Time-independent potassium current (IK1). First term represents the residual
+i_K2 pacemaker current (Noble & Tsien, 1968); overall formulation from McAllister et al. (1975).
 
-Reference: Beeler & Reuter (1977), Table 2; Adrian et al. (1969), J Physiol 204:653-693.
+Reference: Beeler & Reuter (1977), Table 1A, Eqn (2).
 """
 @component function BeelerReuterIK1(; name)
     @variables begin
@@ -213,7 +213,7 @@ end
 
 Time-activated outward (plateau) current with one AlphaBetaGate.
 
-Reference: Beeler & Reuter (1977), Table 3.
+Reference: Beeler & Reuter (1977), Table 1A, Eqns (3)-(4).
 """
 @component function BeelerReuterIx1(; name, g_x1=0.8)
     @variables begin
@@ -242,10 +242,10 @@ end
     BeelerReuterICa(; name, g_max=0.09)
 
 Slow inward (calcium) current: Iₘ = gₛ · d · f · (V - E_Ca).
-This is i_s in BR77 Table 5 (g_s = 0.09). Named `ICa` following the modern convention
+This is i_s in BR77 Table 1A, Eqn (6) (g_s = 0.09). Named `ICa` following the modern convention
 identifying i_s as an L-type calcium current.
 
-Reference: Beeler & Reuter (1977), Table 5.
+Reference: Beeler & Reuter (1977), Table 1A, Eqn (6).
 """
 @component function BeelerReuterICa(; name, g_max=0.09)
     @parameters g_max = g_max
@@ -282,7 +282,7 @@ end
 
 Fast sodium current with three gates (m³hj): Iₘ = gNa · m³ · h · j · (V - ENa).
 
-Reference: Beeler & Reuter (1977), Table 4.
+Reference: Beeler & Reuter (1977), Table 1A, Eqn (5).
 """
 @component function BeelerReuterINa(; name, g_max=4.0, ENa=50.0)
     @parameters begin
@@ -326,10 +326,10 @@ end
     BeelerReuterCalciumDynamics(; name)
 
 Intracellular calcium concentration dynamics.
-The `iCa` input is the slow inward current i_s from BR77 Table 5
+The `iCa` input is the slow inward current i_s from BR77 Table 1B, Eqn (9)
 (computed by [`BeelerReuterICa`](@ref)).
 
-Reference: Beeler & Reuter (1977), Table 5, [Ca]ᵢ equation.
+Reference: Beeler & Reuter (1977), Table 1B, Eqn (9).
 """
 @component function BeelerReuterCalciumDynamics(; name, Caᵢ0=1e-7)
     @variables begin
