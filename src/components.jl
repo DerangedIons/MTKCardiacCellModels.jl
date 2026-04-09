@@ -189,7 +189,11 @@ end
     BeelerReuterIK1(; name)
 
 Time-independent potassium current (IK1). First term represents the residual
-i_K2 pacemaker current (Noble & Tsien, 1968); overall formulation from McAllister et al. (1975).
+i_K2 pacemaker current identified experimentally by Noble & Tsien (1968). The
+functional form follows Adrian's (1969, Eqn 15.1) charged-carrier model, fitted
+analytically to i_K2 by McAllister, Noble & Tsien (1975, Eqn 21). BR77 rescaled
+the amplitude (2.8 → 4.0) and shifted the voltage offsets to account for different
+extracellular potassium concentrations (2.7 mM MNT vs 5.4 mM BR77).
 
 Reference: Beeler & Reuter (1977), Table 1A, Eqn (2).
 """
